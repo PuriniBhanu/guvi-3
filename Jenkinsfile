@@ -9,38 +9,23 @@ pipeline {
 
     stages {
 
-        stage('Clone Application Repo') {
+        stage('Checkout') {
             steps {
-                sh '''
-                rm -rf app
-                git clone https://github.com/sriram-R-krishnan/devops-build.git app
-                '''
+                checkout scm
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh '''
-                cd app
-                docker build -t devops-build-app:${BUILD_NUMBER} .
-                '''
+                sh 'chmod +x build.sh'
+                sh './build.sh'
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                sh '''
-                echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-
-                if [ "$BRANCH_NAME" = "dev" ]; then
-                    REPO="devops-build-app-dev"
-                else
-                    REPO="devops-build-app-prod"
-                fi
-
-                docker tag devops-build-app:${BUILD_NUMBER} $DOCKER_USERNAME/$REPO:${BUILD_NUMBER}
-                docker push $DOCKER_USERNAME/$REPO:${BUILD_NUMBER}
-                '''
+                sh 'chmod +x deploy.sh'
+                sh './deploy.sh'
             }
         }
     }
